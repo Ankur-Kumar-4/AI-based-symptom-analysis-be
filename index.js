@@ -21,8 +21,13 @@ function cleanAndParseJSON(text) {
       throw new Error("No JSON found in response");
     }
     
-    // Parse the JSON
-    const parsed = JSON.parse(jsonMatch[0]);
+    let jsonString = jsonMatch[0];
+    
+    // Handle trailing commas in arrays which are not valid JSON
+    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
+    
+    // Try to parse the JSON
+    const parsed = JSON.parse(jsonString);
     
     // Validate the expected structure
     if (!parsed.diseases || !Array.isArray(parsed.diseases)) {
@@ -32,9 +37,10 @@ function cleanAndParseJSON(text) {
     return parsed;
   } catch (error) {
     console.error("JSON parsing error:", error);
+    // Return a more detailed error message for debugging
     return { 
       diseases: [], 
-      error: "Failed to parse diagnosis results" 
+      error: `Failed to parse diagnosis results: ${error.message}` 
     };
   }
 }
